@@ -214,18 +214,22 @@ async function api(method,body){
 async function refresh(){
  if(!live)return;
  try{
-  const d=await api('GET');pins=d.pins||[];
+  const pinsP=api('GET').then(d=>{pins=d.pins||[];return 1}).catch(()=>0);
+  const ownP=(MODE==='owner'&&pin)?api('POST',{action:'owner',pin}):null;
+  if(MODE!=='owner')await pinsP;
   const m=t=>({id:t.id,c:t.customer,from:t.pickup,to:t.dest,price:t.price,vehicle:t.vehicle,s:t.status==='pending'?'new':t.status==='accepted'?'ok':'no',by:t.driver,u:String(t.updated||''),phone:t.phone});
   if(cur==='customer'&&customer){const o=await api('POST',{action:'mytrips',phone:customer.phone});trips=(o.trips||[]).map(m).reverse()}
   if(cur==='driver'&&driver){const o=await api('POST',{action:'dtrips',name:driver.name,phone:driver.phone});trips=(o.trips||[]).map(m).reverse()}
-  if(MODE==='owner'&&pin){const o=await api('POST',{action:'owner',pin});
-   if(o.ok){owned=true;pinMsg='';const before=newCount();regs=o.regs||[];odrivers=(o.drivers||[]).map(x=>({name:x.name,v:x.vehicle,phone:x.phone,online:x.online}));otrips=(o.trips||[]).map(m).reverse();if(lastN!==null&&newCount()>lastN)alertNew();lastN=newCount()}
-   else{owned=false;pinMsg=o.error==='locked'?'اتقفل مؤقتًا بعد محاولات غلط. جرّب بعد ١٠ دقايق، أو تأكد إن كلمة السر اتحطت في السكريبت.':'كلمة السر غلط.';if(o.error==='pin'){pin='';try{localStorage.removeItem('w-pin')}catch(e){}}}}
+  if(ownP){const o=await ownP;
+   if(o.ok){owned=true;pinMsg='';const before=newCount();regs=o.regs||[];odrivers=(o.drivers||[]).map(x=>({name:x.name,v:x.vehicle,phone:x.phone,online:x.online}));otrips=(o.trips||[]).map(m).reverse();try{localStorage.setItem('w-oc',JSON.stringify({r:regs,d:odrivers,t:otrips}))}catch(x){}if(lastN!==null&&newCount()>lastN)alertNew();lastN=newCount()}
+   else{owned=false;pinMsg=o.error==='locked'?'اتقفل مؤقتًا بعد محاولات غلط. جرّب بعد ١٠ دقايق، أو تأكد إن كلمة السر اتحطت في السكريبت.':'كلمة السر غلط.';if(o.error==='pin'){pin='';try{localStorage.removeItem('w-pin');localStorage.removeItem('w-oc')}catch(e){}}}}
   error='';
+  if(ownP){if(!root.querySelector('#v input:focus'))render();await pinsP}
  }catch(e){error='مش قادر أوصل للسيرفر، هحاول تاني.'}
  if(!root.querySelector('#v input:focus'))render();
 }
 let lastN=null,actx=null;
+if(MODE==='owner'&&pin){try{const c=JSON.parse(localStorage.getItem('w-oc')||'null');if(c){regs=c.r||[];odrivers=c.d||[];otrips=c.t||[];owned=true}}catch(x){}}
 function alertNew(){try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}try{if(actx){const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=880;g.gain.value=.2;o.start();o.stop(actx.currentTime+.35)}}catch(e){}try{if(window.Notification&&Notification.permission==='granted')new Notification('وصّلني',{body:'فيه تسجيل أو طلب جديد'})}catch(e){}}
 let map=null,layer=null,me=null,fitted=false;
 function initMap(){
@@ -253,11 +257,11 @@ root.addEventListener('click',async e=>{
  if(e.target.closest('#copyc')){const u=location.href.split('#')[0].replace(/[^\/]*$/,'')+'customer.html';(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).catch(()=>{}).finally(()=>{const x=$('#toast');x.textContent='تم نسخ رابط العملاء';x.style.display='block';setTimeout(()=>x.style.display='none',1800)});return}
  const mf=e.target.closest('[data-mf]');if(mf){mapFilter=mapFilter===mf.dataset.mf?'':mf.dataset.mf;updMap();return}
  if(e.target.closest('#loc')){const p=await getPos();if(p&&map){me=p;L.circleMarker([p.lat,p.lng],{radius:9,color:'#fff',weight:3,fillColor:'#2563eb',fillOpacity:1}).addTo(map);map.setView([p.lat,p.lng],15)}else{error='مش قادر أحدد موقعك. اسمح للموقع من إعدادات المتصفح.';render()}return}
- const lk=e.target.closest('[data-a=lock]');if(lk){pin='';owned=false;try{localStorage.removeItem('w-pin')}catch(x){}render();return}
+ const lk=e.target.closest('[data-a=lock]');if(lk){pin='';owned=false;try{localStorage.removeItem('w-pin');localStorage.removeItem('w-oc')}catch(x){}render();return}
  const vs=e.target.closest('[data-vs]');if(vs){vsel=vs.dataset.vs;root.querySelectorAll('[data-vs]').forEach(x=>x.classList.toggle('on',x===vs));upd();return}
  const v=e.target.closest('.choice button');if(v){root.querySelectorAll('.choice button').forEach(x=>x.classList.toggle('on',x===v));return}
  const t2=e.target.closest('[data-t2]');if(t2){cur=t2.dataset.t2;render();window.scrollTo(0,0);return}
- const pb=e.target.closest('[data-a=pin]');if(pb){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(x){}const v=($('#pin')||{}).value||'';if(v){pin=v.trim();try{localStorage.setItem('w-pin',pin)}catch(x){}pinMsg='';await refresh()}return}
+ const pb=e.target.closest('[data-a=pin]');if(pb){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(x){}const v=($('#pin')||{}).value||'';if(v){pin=v.trim();try{localStorage.setItem('w-pin',pin)}catch(x){}pinMsg='';pb.textContent='جاري الدخول...';pb.disabled=true;await refresh()}return}
  const sn=e.target.closest('[data-a=seen]');if(sn){seen=new Date().toISOString();try{localStorage.setItem('w-seen',seen)}catch(x){}render();return}
  const hm=e.target.closest('[data-a=home]');if(hm){cur='home';render();window.scrollTo(0,0);return}
  const b=e.target.closest('[data-a]');if(!b||b.disabled)return;
