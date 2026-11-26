@@ -3,7 +3,7 @@
 <meta http-equiv="Cache-Control" content="no-cache"><meta name="theme-color" content="#f97316">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="وصّلني ٢"><title>وصّلني ٢</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<meta name="apple-mobile-web-app-title" content="وصّلني"><title>وصّلني</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 html,body{margin:0;background:#f97316}
 body.ready{background:#f4f5f7}
@@ -17,7 +17,10 @@ body.ready{background:#f4f5f7}
 <div id="splash"><p id="dhikr"></p></div>
 <div id="app"></div>
 <script>
-const MODE='customer'; // owner | driver | customer: each file shows one screen only
+const MODE=location.hash.slice(1)==='k7x-m4q9'?'owner':'customer';
+if(window.addEventListener)window.addEventListener('hashchange',function(){location.reload()});
+const BRAND=MODE==='owner'?'وصّلني ١':'وصّلني';
+// // owner | driver | customer: each file shows one screen only
 const API_URL = 'https://script.google.com/macros/s/AKfycbw3HHA4SpR0LLJ5B01N9QR6-CbuESBuF_NvwFO-NViR-fIPVzjmPRxiiLoWKc4-LtM/exec'; // set to the Apps Script web app URL once deployed
 const ADHKAR=[
   'استغفر الله العظيم',
@@ -123,7 +126,7 @@ p.m{color:#64748b;font-size:14px;line-height:1.7;margin:10px 4px}
 .pin{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:15px}
 </style><div class="wrap"><div class="app">
 <header>
- <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h4l3-6h-5M15 6h3l1 3M12 11l-2-3H7"/></svg></div><h1>وصّلني ٢</h1></div>
+ <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h4l3-6h-5M15 6h3l1 3M12 11l-2-3H7"/></svg></div><h1>${BRAND}</h1></div>
  <div class="counter"><div class="n"><div class="dot"><i></i></div><div class="num" id="cnt">0</div></div><div style="text-align:right"><div class="t">المتاحين الآن</div><div class="s">شغالين ويستقبلوا رحلات</div></div></div>
  <div class="tabs">
   <button class="tab on" data-t="customer"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg><span>واجهة العميل<br>(اطلب رحلة)</span></button>
@@ -191,7 +194,7 @@ function ownerV(){
 let owned=false;
 function render(){
  root.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===cur));
- {const n=newCount(),sp=root.querySelector('.tab[data-t=owner] span');if(sp)sp.textContent='الإدارة والمتابعة'+(n?' ('+n+')':'');document.title=(n?'('+n+') ':'')+'وصّلني ٢'}
+ {const n=newCount(),sp=root.querySelector('.tab[data-t=owner] span');if(sp)sp.textContent='الإدارة والمتابعة'+(n?' ('+n+')':'');document.title=(n?'('+n+') ':'')+BRAND}
  const showMap=MODE==='customer'||(MODE==='owner'&&owned&&pin&&!pinMsg);$('#mapwrap').style.display=showMap?'block':'none';$('#loc').style.display=MODE==='customer'?'block':'none';if(showMap)initMap();updMap();
  $('#cnt').textContent=pins.length;
  $('#v').innerHTML=(cur==='customer'?customerV():cur==='driver'?driverV():ownerV());
