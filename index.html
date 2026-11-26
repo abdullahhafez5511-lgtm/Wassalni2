@@ -127,7 +127,7 @@ p.m{color:#64748b;font-size:14px;line-height:1.7;margin:10px 4px}
 </style><div class="wrap"><div class="app">
 <header>
  <div class="brand"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h4l3-6h-5M15 6h3l1 3M12 11l-2-3H7"/></svg></div><h1>${BRAND}</h1></div>
- <div class="counter"><div class="n"><div class="dot"><i></i></div><div class="num" id="cnt">0</div></div><div style="text-align:right"><div class="t">المتاحين الآن</div><div class="s">شغالين ويستقبلوا رحلات</div></div></div>
+ <div class="counter" id="cbar" style="display:none"><div class="n"><div class="dot"><i></i></div><div class="num" id="cnt">0</div></div><div style="text-align:right"><div class="t">المتاحين الآن</div><div class="s">شغالين ويستقبلوا رحلات</div></div></div>
  <div class="tabs">
   <button class="tab on" data-t="customer"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg><span>واجهة العميل<br>(اطلب رحلة)</span></button>
   <button class="tab" data-t="driver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="10" r="2.5"/><path d="M8 17c.5-2 2-3 4-3s3.5 1 4 3"/></svg><span>بوابة المناديب</span></button>
@@ -196,7 +196,7 @@ function render(){
  root.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===cur));
  {const n=newCount(),sp=root.querySelector('.tab[data-t=owner] span');if(sp)sp.textContent='الإدارة والمتابعة'+(n?' ('+n+')':'');document.title=(n?'('+n+') ':'')+BRAND}
  const showMap=MODE==='customer'||(MODE==='owner'&&owned&&pin&&!pinMsg);$('#mapwrap').style.display=showMap?'block':'none';$('#loc').style.display=MODE==='customer'?'block':'none';if(showMap)initMap();updMap();
- $('#cnt').textContent=pins.length;
+ $('#cnt').textContent=pins.length;$('#cbar').style.display=(MODE==='owner'&&owned&&pin&&!pinMsg)?'flex':'none';
  $('#v').innerHTML=(cur==='customer'?customerV():cur==='driver'?driverV():ownerV());
  upd();
 }
